@@ -5,6 +5,6 @@ Index | Title                                         | Ext    | Size       | Me
 3     | Test-1                                        | webp   | 23.99 KB   | Stripped     | Yes      
 4     | test-2 A                                      | webp   | 2.11 KB    | Stripped     | Yes      
 5     | test-2 B                                      | webp   | 33.58 KB   | Stripped     | Yes      
-6     | Screenshot 2026-07-09 102904                  | png    | 31.17 KB   | Stripped     | No       
-7     | Screenshot 2026-07-06 112539                  | png    | 41.76 KB   | Stripped     | No       
-8     | Screenshot 2026-07-06 123641                  | png    | 54.40 KB   | Stripped     | No       
+6     | Screenshot 2026-07-09 102904                  | webp   | 19.64 KB   | Stripped     | Yes      
+7     | Screenshot 2026-07-06 112539                  | webp   | 18.93 KB   | Stripped     | Yes      
+8     | Screenshot 2026-07-06 123641                  | webp   | 23.12 KB   | Stripped     | Yes      

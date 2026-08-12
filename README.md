@@ -23,7 +23,8 @@ fallback.
   ```
 
   `Container` is the folder a post's assets live in; a container can hold
-  more than one image (Title).
+  more than one image (Title). `Date-Added` is taken from the container
+  folder's `YYYY-MM-DD-hh-mm-ss` prefix.
 
 - **`stats_images.txt`** — per-image stats, joined to the index by `Index`:
 

@@ -93,6 +93,7 @@ def main():
 
         c_match = CONTAINER_PATTERN.match(container.name)
         container_node = c_match.group(2) if c_match else container.name
+        container_date = c_match.group(1) if c_match else "N/A"
 
         for file_path in sorted(container.iterdir()):
             if not file_path.is_file() or file_path.name.startswith("."):
@@ -102,21 +103,19 @@ def main():
             f_match = FILE_PATTERN.match(file_path.name)
 
             if f_match:
-                date_added = f_match.group(1)
                 title = f_match.group(2)
                 num = f_match.group(3)
                 ext = f_match.group(4)
                 if num:
                     title = f"{title} {num}"
             else:
-                date_added = "N/A"
                 title = file_path.stem
                 ext = file_path.suffix.lstrip(".")
 
             rows.append(
                 {
                     "index": len(rows) + 1,
-                    "date_added": date_added,
+                    "date_added": container_date,
                     "node": container_node,
                     "title": title,
                     "extension": ext,
