@@ -1,11 +1,20 @@
 #!/usr/bin/env python3
 import os
 import re
+import shutil
+import subprocess
+import sys
+import urllib.parse
 from pathlib import Path
 
 BASE_DIR = Path("10 Images")
 INDEX_DIR = BASE_DIR / "10 Index"
 INDEX_FILE = INDEX_DIR / "index_images.txt"
+
+REPOSITORY = os.environ.get(
+    "GITHUB_REPOSITORY", "mmmonowar/dat-thepolymodframework-cdn-asst"
+)
+BRANCH = os.environ.get("GITHUB_REF_NAME", "main")
 
 # Regex patterns matching:
 # Container: YYYY-MM-DD-hh-mm-SS Title
@@ -24,15 +33,58 @@ def format_size(size_in_bytes):
     return f"{size_in_bytes:.2f} TB"
 
 
+def find_exiftool():
+    found = shutil.which("exiftool")
+    if found:
+        return found
+    if sys.platform == "win32":
+        exe = shutil.which("exiftool.exe")
+        if exe:
+            return exe
+        candidates = [
+            r"C:\Users\musta\AppData\Local\Programs\ExifTool\exiftool.exe",
+            r"C:\Program Files\ExifTool\exiftool.exe",
+        ]
+        for candidate in candidates:
+            if Path(candidate).is_file():
+                return candidate
+    return None
+
+
+def check_metadata(file_path, exiftool):
+    """Return 'Stripped', 'Has-Metadata', or 'Unknown' for an image file."""
+    if not exiftool:
+        return "Unknown"
+    try:
+        result = subprocess.run(
+            [exiftool, "-s", "-EXIF:all", "-IPTC:all", "-XMP:all", str(file_path)],
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return "Unknown"
+    if result.returncode != 0:
+        return "Unknown"
+    return "Stripped" if not result.stdout.strip() else "Has-Metadata"
+
+
+def raw_url(file_path):
+    """Build a URL-encoded raw.githubusercontent.com URL for a tracked file."""
+    url_path = urllib.parse.quote(file_path.as_posix(), safe="/")
+    return f"https://raw.githubusercontent.com/{REPOSITORY}/{BRANCH}/{url_path}"
+
+
 def main():
     INDEX_DIR.mkdir(parents=True, exist_ok=True)
     rows = []
 
-    # Iterate through all direct subdirectories in '10 Images', excluding '10 Index'
     if not BASE_DIR.exists():
         print(f"Directory {BASE_DIR} not found.")
         return
 
+    exiftool = find_exiftool()
+
+    # Iterate through all direct subdirectories in '10 Images', excluding '10 Index'
     for container in sorted(BASE_DIR.iterdir()):
         if not container.is_dir() or container.name == "10 Index":
             continue
@@ -66,19 +118,26 @@ def main():
                     "title": title,
                     "extension": ext,
                     "size": file_size,
+                    "metadata": check_metadata(file_path, exiftool),
+                    "url": raw_url(file_path),
                 }
             )
 
     # Write output to index_images.txt (Pipe-delimited table / TSV)
     with open(INDEX_FILE, "w", encoding="utf-8") as f:
         f.write(
-            f"{'Date-Added':<22} | {'Node':<25} | {'Title':<35} | {'Ext':<6} | {'Size':<10}\n"
+            f"{'Date-Added':<22} | {'Node':<25} | {'Title':<35} | {'Ext':<6} | {'Size':<10} | {'Metadata':<12}\n"
         )
-        f.write("-" * 110 + "\n")
+        f.write("-" * 130 + "\n")
         for r in rows:
             f.write(
-                f"{r['date_added']:<22} | {r['node']:<25} | {r['title']:<35} | {r['extension']:<6} | {r['size']:<10}\n"
+                f"{r['date_added']:<22} | {r['node']:<25} | {r['title']:<35} | {r['extension']:<6} | {r['size']:<10} | {r['metadata']:<12}\n"
             )
+
+        f.write("\nMarkdown Snippets\n")
+        f.write("=" * 40 + "\n")
+        for r in rows:
+            f.write(f"[{r['title']}]({r['url']})\n")
 
     print(f"Index successfully generated at {INDEX_FILE}")
 
