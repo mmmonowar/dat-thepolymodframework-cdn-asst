@@ -1,0 +1,17 @@
+{{- $indexURL := "https://cdn.jsdelivr.net/gh/mmmonowar/dat-thepolymodframework-cdn-asst@main/10%20Images/10%20Index/index_links.txt" -}}
+{{- $title := .Get 0 -}}
+{{- $asLink := or (eq (.Get 1) "link") (eq (.Get "type") "link") -}}
+{{- $res := resources.GetRemote $indexURL -}}
+{{- if not $res -}}
+  {{- errorf "cdn shortcode: unable to fetch image index %q" $indexURL -}}
+{{- end -}}
+{{- $row := "" -}}
+{{- range after 1 (split (strings.TrimSpace $res.Content) "\n") -}}
+  {{- $fields := split . "\t" -}}
+  {{- if eq (index $fields 2) $title -}}{{- $row = . -}}{{- end -}}
+{{- end -}}
+{{- if not $row -}}
+  {{- errorf "cdn shortcode: no image found for title %q in the CDN index" $title -}}
+{{- end -}}
+{{- $url := index (split $row "\t") 4 -}}
+{{- if $asLink -}}[{{ $title }}]({{ $url }}){{- else -}}<img src="{{ $url }}" alt="{{ $title }}" loading="lazy">{{- end -}}

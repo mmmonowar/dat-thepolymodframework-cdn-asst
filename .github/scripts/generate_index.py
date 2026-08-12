@@ -137,9 +137,11 @@ def main():
 
     # Write output to index_links.txt (Tab-separated values)
     with open(LINKS_FILE, "w", encoding="utf-8") as f:
-        f.write("Node\tDate-Added\tTitle\tMarkdown-Link\n")
+        f.write("Node\tDate-Added\tTitle\tMarkdown-Link\tURL\n")
         for r in rows:
-            f.write(f"{r['node']}\t{r['date_added']}\t{r['title']}\t[{r['title']}]({r['url']})\n")
+            f.write(
+                f"{r['node']}\t{r['date_added']}\t{r['title']}\t[{r['title']}]({r['url']})\t{r['url']}\n"
+            )
 
     print(f"Index successfully generated at {INDEX_FILE}")
     print(f"Markdown links generated at {LINKS_FILE}")

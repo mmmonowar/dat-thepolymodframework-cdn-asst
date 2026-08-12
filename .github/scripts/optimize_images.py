@@ -24,8 +24,16 @@ def optimize_file(file_path):
         print("Run: pip install pillow pillow-heif", file=sys.stderr)
         sys.exit(1)
 
-    original_size = file_path.stat().st_size
-    target = file_path.with_suffix(OUTPUT_EXTENSION)
+    if file_path.suffix.lower() == OUTPUT_EXTENSION:
+        with Image.open(file_path) as img:
+            if img.width <= MAX_WIDTH and img.height <= MAX_HEIGHT:
+                print(f"optimize_images: Skipping {file_path.name} (already optimized).")
+                return
+        original_size = file_path.stat().st_size
+        target = file_path
+    else:
+        original_size = file_path.stat().st_size
+        target = file_path.with_suffix(OUTPUT_EXTENSION)
 
     with Image.open(file_path) as img:
         if img.width > MAX_WIDTH or img.height > MAX_HEIGHT:
@@ -44,7 +52,8 @@ def optimize_file(file_path):
         f"({original_size} B -> {optimized_size} B, saved {saved_bytes} B)"
     )
 
-    file_path.unlink()
+    if target != file_path:
+        file_path.unlink()
     return target
 
 

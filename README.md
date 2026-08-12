@@ -23,19 +23,34 @@ fallback.
   ```
 
 - **`index_links.txt`** — a tab-separated (TSV) list of copy-paste-ready
-  `[title](url)` links for use in blog markdown files:
+  links for use in blog markdown files:
 
   ```
-  Node | Date-Added | Title | Markdown-Link
+  Node | Date-Added | Title | Markdown-Link | URL
   ```
 
   The Markdown-Link column contains the full snippet, e.g.
   `[SS Journaling-Intellectual-Humility](https://cdn.jsdelivr.net/gh/mmmonowar/dat-thepolymodframework-cdn-asst@main/...HEIC)`.
+  The URL column contains the raw URL for tooling.
 
   > **Embedding in a blog:** `[title](url)` is a clickable link, not an image.
   > To display the image inline in a Hugo post use `![alt text](url)` (or
   > `[![alt text](url)](url)` for a clickable image that opens the full-size
   > file).
+
+## Hugo Shortcode
+
+To avoid pasting long CDN URLs into blog posts, use the shortcode in
+`hugo-shortcode/cdn.html`. Copy it into your blog repo at
+`layouts/shortcodes/cdn.html`, then in any post:
+
+- Embed inline: `{{< cdn "SS Journaling-Intellectual-Humility" >}}`
+- Clickable link: `{{< cdn "SS Journaling-Intellectual-Humility" link >}}`
+
+At build time Hugo fetches the live `index_links.txt` from the CDN (cached),
+matches the Title, and emits the `<img>` or markdown link. New images work
+automatically once pushed. An unknown Title fails the build with a clear
+error.
 
 The **Metadata** column reports whether privacy-related metadata (EXIF, IPTC,
 XMP) has been removed:
