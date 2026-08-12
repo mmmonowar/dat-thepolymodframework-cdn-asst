@@ -1,0 +1,50 @@
+name: Strip Image Metadata
+
+on:
+  push:
+    paths:
+      - '10 Images/**'
+      - '!10 Images/10 Index/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  strip-metadata:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Required to compare against the previous commit
+
+      - name: Install ExifTool
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libimage-exiftool-perl
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Strip Metadata (Piped)
+        run: |
+          # Detect only added (A) or modified (M) files from the latest push and pipe into the script
+          git diff --name-only --diff-filter=AM HEAD~1 HEAD \
+            | python3 .github/scripts/strip_metadata.py
+
+      - name: Commit & Push Cleaned Images
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add "10 Images/"
+
+          if git diff --staged --quiet; then
+            echo "No metadata changes to commit."
+          else
+            git commit -m "Strip image metadata [skip ci]"
+            git push
+          fi
