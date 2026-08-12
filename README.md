@@ -11,15 +11,24 @@ assets live under `10 Images/` and are served via raw GitHub URLs
 
 ## Image Index
 
-`10 Images/10 Index/index_images.txt` is auto-generated on every push to
-`10 Images/` (`.github/workflows/update-index.yml`). It contains a
-pipe-delimited table with per-image details and a **Markdown Snippets**
-section at the bottom with copy-paste-ready `[title](url)` links for use in
-blog markdown files.
+`10 Images/10 Index/` is auto-generated on every push to `10 Images/`
+(`.github/workflows/update-index.yml`). It contains two files:
 
-```
-Date-Added | Node | Title | Ext | Size | Metadata
-```
+- **`index_images.txt`** — a pipe-delimited table with per-image details:
+
+  ```
+  Date-Added | Node | Title | Ext | Size | Metadata
+  ```
+
+- **`index_links.txt`** — a tab-separated (TSV) list of copy-paste-ready
+  `[title](url)` links for use in blog markdown files:
+
+  ```
+  Node | Date-Added | Title | Markdown-Link
+  ```
+
+  The Markdown-Link column contains the full snippet, e.g.
+  `[SS Journaling-Intellectual-Humility](https://raw.githubusercontent.com/...HEIC)`.
 
 The **Metadata** column reports whether privacy-related metadata (EXIF, IPTC,
 XMP) has been removed:

@@ -10,6 +10,7 @@ from pathlib import Path
 BASE_DIR = Path("10 Images")
 INDEX_DIR = BASE_DIR / "10 Index"
 INDEX_FILE = INDEX_DIR / "index_images.txt"
+LINKS_FILE = INDEX_DIR / "index_links.txt"
 
 REPOSITORY = os.environ.get(
     "GITHUB_REPOSITORY", "mmmonowar/dat-thepolymodframework-cdn-asst"
@@ -123,7 +124,7 @@ def main():
                 }
             )
 
-    # Write output to index_images.txt (Pipe-delimited table / TSV)
+    # Write output to index_images.txt (Pipe-delimited table)
     with open(INDEX_FILE, "w", encoding="utf-8") as f:
         f.write(
             f"{'Date-Added':<22} | {'Node':<25} | {'Title':<35} | {'Ext':<6} | {'Size':<10} | {'Metadata':<12}\n"
@@ -134,12 +135,14 @@ def main():
                 f"{r['date_added']:<22} | {r['node']:<25} | {r['title']:<35} | {r['extension']:<6} | {r['size']:<10} | {r['metadata']:<12}\n"
             )
 
-        f.write("\nMarkdown Snippets\n")
-        f.write("=" * 40 + "\n")
+    # Write output to index_links.txt (Tab-separated values)
+    with open(LINKS_FILE, "w", encoding="utf-8") as f:
+        f.write("Node\tDate-Added\tTitle\tMarkdown-Link\n")
         for r in rows:
-            f.write(f"[{r['title']}]({r['url']})\n")
+            f.write(f"{r['node']}\t{r['date_added']}\t{r['title']}\t[{r['title']}]({r['url']})\n")
 
     print(f"Index successfully generated at {INDEX_FILE}")
+    print(f"Markdown links generated at {LINKS_FILE}")
 
 
 if __name__ == "__main__":
