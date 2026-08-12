@@ -47,10 +47,18 @@ jobs:
 
       - name: Verify Stripping
         run: |
-          echo "Scanning directory for remaining metadata tags:"
-          find "10 Images" -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webp" -o -name "*.heic" -o -name "*.heif" -o -name "*.tiff" -o -name "*.tif" \) \
+          echo "Scanning directory for remaining metadata tags..."
+          remaining=$(find "10 Images" -type f \
+            \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.webp" \
+               -o -iname "*.heic" -o -iname "*.heif" -o -iname "*.tiff" -o -iname "*.tif" \) \
             -not -path "*/10 Index/*" \
-            -exec exiftool -s -G -EXIF:all -IPTC:all -XMP:all {} + || true
+            -exec exiftool -s -G -EXIF:all -IPTC:all -XMP:all -gps:all {} + 2>/dev/null)
+          if [ -n "$remaining" ]; then
+            echo "::error::Metadata NOT stripped from the following files:"
+            echo "$remaining"
+            exit 1
+          fi
+          echo "All image metadata successfully stripped."
 
       - name: Commit & Push Cleaned Images
         run: |

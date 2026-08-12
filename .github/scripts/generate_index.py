@@ -144,6 +144,14 @@ def main():
     print(f"Index successfully generated at {INDEX_FILE}")
     print(f"Markdown links generated at {LINKS_FILE}")
 
+    offenders = [r["title"] for r in rows if r["metadata"] == "Has-Metadata"]
+    if offenders:
+        print(
+            f"ERROR: Metadata not stripped from {len(offenders)} file(s): {', '.join(offenders)}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

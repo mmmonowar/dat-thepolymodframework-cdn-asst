@@ -47,6 +47,20 @@ make/model, timestamps, and other privacy-sensitive data.
 Note: structural tags required to render the image (e.g. dimensions, the
 embedded ICC color profile) are retained; they contain no privacy data.
 
+## Automatic Verification
+
+Stripping is enforced automatically — no manual checks needed:
+
+- After stripping, `strip_metadata.yml` rescans every image for
+  `EXIF:all`, `IPTC:all`, `XMP:all`, and `gps:all` tags. If anything
+  remains, the workflow **fails** (red ✗) and the cleaned files are not
+  committed — the offending image must be fixed and re-pushed.
+- `update-index.yml` also fails if any image reports `Has-Metadata` in the
+  index, so a metadata-laden push turns both workflows red.
+
+The scan only looks at embedded metadata groups, so structural tags
+(dimensions, codec config, ICC profile) never cause a false failure.
+
 > **HEIC warning:** Most browsers cannot render HEIC/HEIF files inline. The
 > generated `[title](url)` links work as download/source links, but a
 > `![alt](url)` embed will not display for HEIC images. Convert HEIC assets
