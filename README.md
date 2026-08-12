@@ -83,26 +83,31 @@ using Pillow + pillow-heif):
   conversion, so stripping is automatic)
 - Tune `MAX_WIDTH`, `MAX_HEIGHT`, `WEBP_QUALITY` via workflow env vars
 
-Pipeline on push: **optimize → strip → generate index**, so the index and
-markdown links are auto-updated to the optimized WebP assets.
+Pipeline on push: **optimize (convert + strip + verify) → generate index**, so
+the index and markdown links are auto-updated to the optimized WebP assets.
 
 ## Metadata Stripping
 
-`.github/workflows/strip_metadata.yml` automatically strips EXIF, IPTC, and
-XMP metadata from every image pushed to `10 Images/` using ExifTool
-(`exiftool -all= -overwrite_original`). This removes GPS coordinates, camera
-make/model, timestamps, and other privacy-sensitive data.
+Metadata stripping happens automatically during optimization: Pillow drops
+all EXIF/IPTC/XMP on WebP conversion, and the optimize workflow verifies the
+result (see below).
+
+`.github/workflows/strip_metadata.yml` is also available as a **manual**
+utility (Actions → Strip Image Metadata → Run workflow) for stripping
+metadata from any image using ExifTool (`exiftool -all= -overwrite_original`).
+This removes GPS coordinates, camera make/model, timestamps, and other
+privacy-sensitive data.
 
 Note: structural tags required to render the image (e.g. dimensions, the
 embedded ICC color profile) are retained; they contain no privacy data.
 
 ## Automatic Verification
 
-Stripping is enforced automatically — no manual checks needed:
+Metadata stripping is enforced automatically — no manual checks needed:
 
-- After stripping, `strip_metadata.yml` rescans every image for
+- After optimizing, `optimize-images.yml` rescans every image for
   `EXIF:all`, `IPTC:all`, `XMP:all`, and `gps:all` tags. If anything
-  remains, the workflow **fails** (red ✗) and the cleaned files are not
+  remains, the workflow **fails** (red ✗) and the optimized files are not
   committed — the offending image must be fixed and re-pushed.
 - `update-index.yml` also fails if any image reports `Has-Metadata` in the
   index, so a metadata-laden push turns both workflows red.

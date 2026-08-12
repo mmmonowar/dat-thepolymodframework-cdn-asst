@@ -1,10 +1,6 @@
 name: Strip Image Metadata
 
 on:
-  push:
-    paths:
-      - '10 Images/**'
-      - '!10 Images/10 Index/**'
   workflow_dispatch:
 
 permissions:
