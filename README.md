@@ -6,8 +6,10 @@ Blog Assets for thepolymodframework blog.
 
 This repository acts as a CDN for images referenced from the
 [thepolymodframework](https://thepolymodframework.com) Hugo blog. Each post's
-assets live under `10 Images/` and are served via raw GitHub URLs
-(`https://raw.githubusercontent.com/mmmonowar/dat-thepolymodframework-cdn-asst/main/...`).
+assets live under `10 Images/` and are served via jsDelivr CDN URLs
+(`https://cdn.jsdelivr.net/gh/mmmonowar/dat-thepolymodframework-cdn-asst@main/...`).
+Raw GitHub URLs (`https://raw.githubusercontent.com/...`) also work as a
+fallback.
 
 ## Image Index
 
@@ -28,7 +30,12 @@ assets live under `10 Images/` and are served via raw GitHub URLs
   ```
 
   The Markdown-Link column contains the full snippet, e.g.
-  `[SS Journaling-Intellectual-Humility](https://raw.githubusercontent.com/...HEIC)`.
+  `[SS Journaling-Intellectual-Humility](https://cdn.jsdelivr.net/gh/mmmonowar/dat-thepolymodframework-cdn-asst@main/...HEIC)`.
+
+  > **Embedding in a blog:** `[title](url)` is a clickable link, not an image.
+  > To display the image inline in a Hugo post use `![alt text](url)` (or
+  > `[![alt text](url)](url)` for a clickable image that opens the full-size
+  > file).
 
 The **Metadata** column reports whether privacy-related metadata (EXIF, IPTC,
 XMP) has been removed:
@@ -36,6 +43,21 @@ XMP) has been removed:
 - `Stripped` - all EXIF/IPTC/XMP metadata removed
 - `Has-Metadata` - metadata still present
 - `Unknown` - could not be determined (exiftool unavailable)
+
+## Image Optimization
+
+`.github/workflows/optimize-images.yml` converts every image pushed to
+`10 Images/` into an optimized **WebP** (`.github/scripts/optimize_images.py`
+using Pillow + pillow-heif):
+
+- Sources: HEIC/HEIF/JPEG/PNG/TIFF/WebP
+- Downscaled only if larger than 1920px (never upscaled), quality 80
+- The original file is replaced by the `.webp` (metadata is dropped on
+  conversion, so stripping is automatic)
+- Tune `MAX_WIDTH`, `MAX_HEIGHT`, `WEBP_QUALITY` via workflow env vars
+
+Pipeline on push: **optimize → strip → generate index**, so the index and
+markdown links are auto-updated to the optimized WebP assets.
 
 ## Metadata Stripping
 
@@ -62,6 +84,6 @@ The scan only looks at embedded metadata groups, so structural tags
 (dimensions, codec config, ICC profile) never cause a false failure.
 
 > **HEIC warning:** Most browsers cannot render HEIC/HEIF files inline. The
-> generated `[title](url)` links work as download/source links, but a
-> `![alt](url)` embed will not display for HEIC images. Convert HEIC assets
-> to JPEG/WebP/PNG if inline display is required.
+> optimizer converts these to WebP on push, so generated links always point to
+> a browser-friendly format. If you reference raw HEIC files directly, they
+> will only open in Safari (macOS/iOS).

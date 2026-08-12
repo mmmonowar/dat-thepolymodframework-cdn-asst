@@ -1,0 +1,62 @@
+name: Optimize Images
+
+on:
+  push:
+    paths:
+      - '10 Images/**'
+      - '!10 Images/10 Index/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  optimize-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: |
+          pip install --quiet pillow pillow-heif
+
+      - name: Detect Changed Images and Optimize
+        run: |
+          # If triggered by a normal push, diff between the before and after commit SHA
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            echo "Comparing commit range: ${{ github.event.before }} .. ${{ github.event.after }}"
+            changed_files=$(git diff --name-only --diff-filter=AM "${{ github.event.before }}" "${{ github.event.after }}" | grep -E '^10 Images/' || true)
+            if [ -n "$changed_files" ]; then
+              echo "$changed_files" | python3 .github/scripts/optimize_images.py
+            else
+              echo "No image files changed in this push."
+            fi
+          else
+            echo "Performing full recursive scan..."
+            python3 .github/scripts/optimize_images.py
+          fi
+
+      - name: Commit & Push Optimized Images
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Stage all files inside the images root
+          git add "10 Images"
+
+          if git diff --staged --quiet; then
+            echo "No file changes detected after optimizing."
+          else
+            echo "Changes detected. Committing optimized files..."
+            git commit -m "Optimize images to WebP"
+            git pull --rebase --autostash
+            git push
+          fi

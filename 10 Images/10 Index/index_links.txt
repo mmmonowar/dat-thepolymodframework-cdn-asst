@@ -1,2 +1,2 @@
 Node	Date-Added	Title	Markdown-Link
-SS Journaling-Intellectual-Humility	2026-08-12-09-09-28	SS Journaling-Intellectual-Humility	[SS Journaling-Intellectual-Humility](https://raw.githubusercontent.com/mmmonowar/dat-thepolymodframework-cdn-asst/main/10%20Images/2026-08-12-09-09-28%20SS%20Journaling-Intellectual-Humility/2026-08-12-09-09-28%20SS%20Journaling-Intellectual-Humility.HEIC)
+SS Journaling-Intellectual-Humility	2026-08-12-09-09-28	SS Journaling-Intellectual-Humility	[SS Journaling-Intellectual-Humility](https://cdn.jsdelivr.net/gh/mmmonowar/dat-thepolymodframework-cdn-asst@main/10%20Images/2026-08-12-09-09-28%20SS%20Journaling-Intellectual-Humility/2026-08-12-09-09-28%20SS%20Journaling-Intellectual-Humility.HEIC)

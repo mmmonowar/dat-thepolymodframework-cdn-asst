@@ -70,9 +70,9 @@ def check_metadata(file_path, exiftool):
 
 
 def raw_url(file_path):
-    """Build a URL-encoded raw.githubusercontent.com URL for a tracked file."""
+    """Build a URL-encoded jsDelivr CDN URL for a tracked file."""
     url_path = urllib.parse.quote(file_path.as_posix(), safe="/")
-    return f"https://raw.githubusercontent.com/{REPOSITORY}/{BRANCH}/{url_path}"
+    return f"https://cdn.jsdelivr.net/gh/{REPOSITORY}@{BRANCH}/{url_path}"
 
 
 def main():
