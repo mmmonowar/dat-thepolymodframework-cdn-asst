@@ -3,8 +3,8 @@ name: Strip Image Metadata
 on:
   push:
     paths:
-      - 'dat-thepolymodframework-cdn-asst/10 Images/**'
-      - '!dat-thepolymodframework-cdn-asst/10 Images/10 Index/**'
+      - '10 Images/**'
+      - '!10 Images/10 Index/**'
   workflow_dispatch:
 
 permissions:
@@ -34,9 +34,12 @@ jobs:
           # If triggered by a normal push, diff between the before and after commit SHA
           if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
             echo "Comparing commit range: ${{ github.event.before }} .. ${{ github.event.after }}"
-            git diff --name-only --diff-filter=AM "${{ github.event.before }}" "${{ github.event.after }}" \
-              | grep -E '^dat-thepolymodframework-cdn-asst/10 Images/' || true \
-              | python3 .github/scripts/strip_metadata.py
+            changed_files=$(git diff --name-only --diff-filter=AM "${{ github.event.before }}" "${{ github.event.after }}" | grep -E '^10 Images/' || true)
+            if [ -n "$changed_files" ]; then
+              echo "$changed_files" | python3 .github/scripts/strip_metadata.py
+            else
+              echo "No image files changed in this push."
+            fi
           else
             echo "Performing full recursive scan..."
             python3 .github/scripts/strip_metadata.py
@@ -45,7 +48,7 @@ jobs:
       - name: Verify Stripping
         run: |
           echo "Scanning directory for remaining metadata tags:"
-          find "dat-thepolymodframework-cdn-asst/10 Images" -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webp" \) \
+          find "10 Images" -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webp" -o -name "*.heic" -o -name "*.heif" -o -name "*.tiff" -o -name "*.tif" \) \
             -not -path "*/10 Index/*" \
             -exec exiftool -s -G -EXIF:all -IPTC:all -XMP:all {} + || true
 
@@ -55,12 +58,13 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           # Stage all files inside the images root
-          git add "dat-thepolymodframework-cdn-asst/10 Images"
+          git add "10 Images"
 
           if git diff --staged --quiet; then
             echo "No file changes detected after stripping."
           else
             echo "Changes detected. Committing cleaned files..."
-            git commit -m "Strip image metadata [skip ci]"
+            git commit -m "Strip image metadata"
+            git pull --rebase --autostash
             git push
           fi

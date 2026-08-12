@@ -4,7 +4,7 @@ import sys
 import subprocess
 from pathlib import Path
 
-BASE_DIR = Path("dat-thepolymodframework-cdn-asst/10 Images")
+BASE_DIR = Path("10 Images")
 INDEX_NAME = "10 Index"
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".tiff", ".tif", ".heic"}
 
