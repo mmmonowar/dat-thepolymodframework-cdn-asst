@@ -3,8 +3,8 @@ name: Strip Image Metadata
 on:
   push:
     paths:
-      - '10 Images/**'
-      - '!10 Images/10 Index/**'
+      - 'dat-thepolymodframework-cdn-asst/10 Images/**'
+      - '!dat-thepolymodframework-cdn-asst/10 Images/10 Index/**'
   workflow_dispatch:
 
 permissions:
@@ -17,11 +17,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2 # Required to compare against the previous commit
+          fetch-depth: 0
 
       - name: Install ExifTool
         run: |
-          sudo apt-get update
+          sudo apt-get update -qq
           sudo apt-get install -y libimage-exiftool-perl
 
       - name: Set up Python
@@ -29,22 +29,38 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Strip Metadata (Piped)
+      - name: Detect Changed Images and Strip Metadata
         run: |
-          # Detect only added (A) or modified (M) files from the latest push and pipe into the script
-          git diff --name-only --diff-filter=AM HEAD~1 HEAD \
-            | python3 .github/scripts/strip_metadata.py
+          # If triggered by a normal push, diff between the before and after commit SHA
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            echo "Comparing commit range: ${{ github.event.before }} .. ${{ github.event.after }}"
+            git diff --name-only --diff-filter=AM "${{ github.event.before }}" "${{ github.event.after }}" \
+              | grep -E '^dat-thepolymodframework-cdn-asst/10 Images/' || true \
+              | python3 .github/scripts/strip_metadata.py
+          else
+            echo "Performing full recursive scan..."
+            python3 .github/scripts/strip_metadata.py
+          fi
+
+      - name: Verify Stripping
+        run: |
+          echo "Scanning directory for remaining metadata tags:"
+          find "dat-thepolymodframework-cdn-asst/10 Images" -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webp" \) \
+            -not -path "*/10 Index/*" \
+            -exec exiftool -s -G -EXIF:all -IPTC:all -XMP:all {} + || true
 
       - name: Commit & Push Cleaned Images
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          git add "10 Images/"
+
+          # Stage all files inside the images root
+          git add "dat-thepolymodframework-cdn-asst/10 Images"
 
           if git diff --staged --quiet; then
-            echo "No metadata changes to commit."
+            echo "No file changes detected after stripping."
           else
+            echo "Changes detected. Committing cleaned files..."
             git commit -m "Strip image metadata [skip ci]"
             git push
           fi

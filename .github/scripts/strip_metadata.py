@@ -1,56 +1,61 @@
 #!/usr/bin/env python3
-"""
-strip_metadata.py
-Single responsibility: Remove all EXIF, GPS, XMP, and IPTC metadata from specified images.
-Usage:
-  1. CLI Args:   python3 strip_metadata.py path/to/img1.png path/to/img2.jpg
-  2. Pipe/stdin: git diff --name-only | python3 strip_metadata.py
-  3. Default:    python3 strip_metadata.py  (processes all images in '10 Images/')
-"""
-
+import os
 import sys
 import subprocess
 from pathlib import Path
 
+BASE_DIR = Path("dat-thepolymodframework-cdn-asst/10 Images")
+INDEX_NAME = "10 Index"
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".tiff", ".tif", ".heic"}
 
 
 def sanitize_files(file_paths):
-    valid_files = [
-        str(p) for p in file_paths 
-        if Path(p).is_file() and Path(p).suffix.lower() in SUPPORTED_EXTENSIONS
-    ]
+    cleaned_paths = []
+    for raw in file_paths:
+        # Strip whitespace, quotes, and normalize Windows backslashes
+        clean = raw.strip().strip('"').strip("'").replace("\\", "/")
+        p = Path(clean)
+        
+        # Ensure file exists, has a supported image extension, and is not inside the Index directory
+        if p.is_file() and p.suffix.lower() in SUPPORTED_EXTENSIONS:
+            if INDEX_NAME not in p.parts:
+                cleaned_paths.append(str(p))
 
-    if not valid_files:
-        print("strip_metadata: No valid image files provided to sanitize.")
+    if not cleaned_paths:
+        print("strip_metadata: No valid target image files found to sanitize.")
         return
 
-    # Call exiftool in a single batch for maximum performance
-    cmd = ["exiftool", "-all=", "-overwrite_original", "-q", "-q"] + valid_files
-    try:
-        subprocess.run(cmd, check=True)
-        print(f"strip_metadata: Successfully stripped metadata from {len(valid_files)} file(s).")
-    except FileNotFoundError:
-        print("strip_metadata error: 'exiftool' is not installed or not in PATH.", file=sys.stderr)
-        sys.exit(1)
-    except subprocess.CalledProcessError as e:
-        print(f"strip_metadata error: exiftool failed with exit code {e.returncode}", file=sys.stderr)
-        sys.exit(e.returncode)
+    print(f"strip_metadata: Found {len(cleaned_paths)} image(s) to process.")
+
+    # ExifTool flags:
+    # -all= : Removes all standard EXIF, IPTC, XMP metadata and GPS coordinates
+    # -overwrite_original : Direct overwrite without creating ._original backups
+    cmd = ["exiftool", "-all=", "-overwrite_original", "-q"] + cleaned_paths
+    
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"strip_metadata ERROR:\n{result.stderr}", file=sys.stderr)
+        sys.exit(result.returncode)
+    
+    print(f"strip_metadata: Successfully stripped metadata from {len(cleaned_paths)} file(s).")
 
 
 def main():
-    # 1. Check if arguments passed via CLI
+    # 1. CLI Arguments
     if len(sys.argv) > 1:
         files = sys.argv[1:]
-    # 2. Check if arguments passed via pipe (stdin)
+    # 2. Piped Input / stdin
     elif not sys.stdin.isatty():
-        files = [line.strip() for line in sys.stdin if line.strip()]
-    # 3. Fallback: Scan '10 Images/' directory
+        files = [line.strip() for line in sys.stdin.readlines() if line.strip()]
+    # 3. Fallback: Recursive directory scan of nested files
     else:
-        base_dir = Path("10 Images")
-        if base_dir.exists():
-            files = [str(p) for p in base_dir.rglob("*") if p.is_file() and p.parent.name != "10 Index"]
+        if BASE_DIR.exists():
+            files = [
+                str(p) for p in BASE_DIR.rglob("*") 
+                if p.is_file() and INDEX_NAME not in p.parts
+            ]
         else:
+            print(f"strip_metadata warning: Base directory '{BASE_DIR}' does not exist.")
             files = []
 
     sanitize_files(files)
