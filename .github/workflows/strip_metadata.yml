@@ -52,7 +52,8 @@ jobs:
             \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.webp" \
                -o -iname "*.heic" -o -iname "*.heif" -o -iname "*.tiff" -o -iname "*.tif" \) \
             -not -path "*/10 Index/*" \
-            -exec exiftool -s -G -EXIF:all -IPTC:all -XMP:all -gps:all {} + 2>/dev/null)
+            -exec exiftool -q -s -G -EXIF:all -IPTC:all -XMP:all -gps:all {} + 2>/dev/null \
+            | grep -E '^\[' || true)
           if [ -n "$remaining" ]; then
             echo "::error::Metadata NOT stripped from the following files:"
             echo "$remaining"

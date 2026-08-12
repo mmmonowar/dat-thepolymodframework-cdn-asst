@@ -8,10 +8,10 @@
 {{- $row := "" -}}
 {{- range after 1 (split (strings.TrimSpace $res.Content) "\n") -}}
   {{- $fields := split . "\t" -}}
-  {{- if eq (index $fields 2) $title -}}{{- $row = . -}}{{- end -}}
+  {{- if eq (index $fields 1) $title -}}{{- $row = . -}}{{- end -}}
 {{- end -}}
 {{- if not $row -}}
   {{- errorf "cdn shortcode: no image found for title %q in the CDN index" $title -}}
 {{- end -}}
-{{- $url := index (split $row "\t") 4 -}}
+{{- $url := index (split $row "\t") 3 -}}
 {{- if $asLink -}}[{{ $title }}]({{ $url }}){{- else -}}<img src="{{ $url }}" alt="{{ $title }}" loading="lazy">{{- end -}}

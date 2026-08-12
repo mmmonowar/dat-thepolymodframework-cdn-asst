@@ -14,24 +14,36 @@ fallback.
 ## Image Index
 
 `10 Images/10 Index/` is auto-generated on every push to `10 Images/`
-(`.github/workflows/update-index.yml`). It contains two files:
+(`.github/workflows/update-index.yml`). It contains three files:
 
-- **`index_images.txt`** — a pipe-delimited table with per-image details:
+- **`index_images.txt`** — a pipe-delimited registry of every image:
 
   ```
-  Date-Added | Node | Title | Ext | Size | Metadata
+  Index | Date-Added | Container | Title
   ```
+
+  `Container` is the folder a post's assets live in; a container can hold
+  more than one image (Title).
+
+- **`stats_images.txt`** — per-image stats, joined to the index by `Index`:
+
+  ```
+  Index | Title | Ext | Size | Metadata | Optimized
+  ```
+
+  - `Metadata`: `Stripped` / `Has-Metadata` / `Unknown`
+  - `Optimized`: `Yes` (WebP) / `No` (source format still present)
 
 - **`index_links.txt`** — a tab-separated (TSV) list of copy-paste-ready
-  links for use in blog markdown files:
+  links for use in blog markdown files and the Hugo layout:
 
   ```
-  Node | Date-Added | Title | Markdown-Link | URL
+  Index | Title | Markdown-Link | URL
   ```
 
   The Markdown-Link column contains the full snippet, e.g.
-  `[SS Journaling-Intellectual-Humility](https://cdn.jsdelivr.net/gh/mmmonowar/dat-thepolymodframework-cdn-asst@main/...HEIC)`.
-  The URL column contains the raw URL for tooling.
+  `[SS Journaling-Intellectual-Humility](https://cdn.jsdelivr.net/gh/mmmonowar/dat-thepolymodframework-cdn-asst@main/...webp)`.
+  The URL column contains the raw URL for tooling (used by the shortcode).
 
   > **Embedding in a blog:** `[title](url)` is a clickable link, not an image.
   > To display the image inline in a Hugo post use `![alt text](url)` (or
@@ -52,8 +64,8 @@ matches the Title, and emits the `<img>` or markdown link. New images work
 automatically once pushed. An unknown Title fails the build with a clear
 error.
 
-The **Metadata** column reports whether privacy-related metadata (EXIF, IPTC,
-XMP) has been removed:
+The **Metadata** status (in `stats_images.txt`) reports whether
+privacy-related metadata (EXIF, IPTC, XMP) has been removed:
 
 - `Stripped` - all EXIF/IPTC/XMP metadata removed
 - `Has-Metadata` - metadata still present

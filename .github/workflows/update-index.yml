@@ -34,7 +34,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add "10 Images/10 Index/index_images.txt" "10 Images/10 Index/index_links.txt"
+          git add "10 Images/10 Index/index_images.txt" "10 Images/10 Index/index_links.txt" "10 Images/10 Index/stats_images.txt"
           
           # Only commit if changes exist
           if git diff --staged --quiet; then

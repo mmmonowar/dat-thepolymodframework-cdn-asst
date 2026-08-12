@@ -11,6 +11,7 @@ BASE_DIR = Path("10 Images")
 INDEX_DIR = BASE_DIR / "10 Index"
 INDEX_FILE = INDEX_DIR / "index_images.txt"
 LINKS_FILE = INDEX_DIR / "index_links.txt"
+STATS_FILE = INDEX_DIR / "stats_images.txt"
 
 REPOSITORY = os.environ.get(
     "GITHUB_REPOSITORY", "mmmonowar/dat-thepolymodframework-cdn-asst"
@@ -114,36 +115,50 @@ def main():
 
             rows.append(
                 {
+                    "index": len(rows) + 1,
                     "date_added": date_added,
                     "node": container_node,
                     "title": title,
                     "extension": ext,
                     "size": file_size,
                     "metadata": check_metadata(file_path, exiftool),
+                    "optimized": "Yes" if ext.lower() == "webp" else "No",
                     "url": raw_url(file_path),
                 }
             )
 
-    # Write output to index_images.txt (Pipe-delimited table)
+    # Write output to index_images.txt (Pipe-delimited registry)
     with open(INDEX_FILE, "w", encoding="utf-8") as f:
         f.write(
-            f"{'Date-Added':<22} | {'Node':<25} | {'Title':<35} | {'Ext':<6} | {'Size':<10} | {'Metadata':<12}\n"
+            f"{'Index':<5} | {'Date-Added':<22} | {'Container':<25} | {'Title':<35}\n"
         )
-        f.write("-" * 130 + "\n")
+        f.write("-" * 100 + "\n")
         for r in rows:
             f.write(
-                f"{r['date_added']:<22} | {r['node']:<25} | {r['title']:<35} | {r['extension']:<6} | {r['size']:<10} | {r['metadata']:<12}\n"
+                f"{r['index']:<5} | {r['date_added']:<22} | {r['node']:<25} | {r['title']:<35}\n"
+            )
+
+    # Write output to stats_images.txt (Pipe-delimited stats)
+    with open(STATS_FILE, "w", encoding="utf-8") as f:
+        f.write(
+            f"{'Index':<5} | {'Title':<45} | {'Ext':<6} | {'Size':<10} | {'Metadata':<12} | {'Optimized':<9}\n"
+        )
+        f.write("-" * 100 + "\n")
+        for r in rows:
+            f.write(
+                f"{r['index']:<5} | {r['title']:<45} | {r['extension']:<6} | {r['size']:<10} | {r['metadata']:<12} | {r['optimized']:<9}\n"
             )
 
     # Write output to index_links.txt (Tab-separated values)
     with open(LINKS_FILE, "w", encoding="utf-8") as f:
-        f.write("Node\tDate-Added\tTitle\tMarkdown-Link\tURL\n")
+        f.write("Index\tTitle\tMarkdown-Link\tURL\n")
         for r in rows:
             f.write(
-                f"{r['node']}\t{r['date_added']}\t{r['title']}\t[{r['title']}]({r['url']})\t{r['url']}\n"
+                f"{r['index']}\t{r['title']}\t[{r['title']}]({r['url']})\t{r['url']}\n"
             )
 
     print(f"Index successfully generated at {INDEX_FILE}")
+    print(f"Stats generated at {STATS_FILE}")
     print(f"Markdown links generated at {LINKS_FILE}")
 
     offenders = [r["title"] for r in rows if r["metadata"] == "Has-Metadata"]
