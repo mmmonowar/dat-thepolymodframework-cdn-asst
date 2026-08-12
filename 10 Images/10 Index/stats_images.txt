@@ -2,3 +2,6 @@ Index | Title                                         | Ext    | Size       | Me
 ----------------------------------------------------------------------------------------------------
 1     | Hello Hello                                   | webp   | 23.35 KB   | Stripped     | Yes      
 2     | SS Journaling-Intellectual-Humility           | webp   | 237.79 KB  | Stripped     | Yes      
+3     | Test-1                                        | png    | 55.98 KB   | Stripped     | No       
+4     | test-2 A                                      | png    | 16.59 KB   | Stripped     | No       
+5     | test-2 B                                      | png    | 231.71 KB  | Stripped     | No       
